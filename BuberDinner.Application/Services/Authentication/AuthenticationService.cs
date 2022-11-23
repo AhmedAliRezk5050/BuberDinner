@@ -1,3 +1,4 @@
+using BuberDinner.Application.Common.Errors;
 using BuberDinner.Application.Common.Interfaces.Authentication;
 using BuberDinner.Application.Common.Interfaces.Persistence;
 using BuberDinner.Domain.Entities;
@@ -36,7 +37,7 @@ public class AuthenticationService : IAuthenticationService
     {
         if (_userRepository.GetUserByEmail(email) is not null)
         {
-            throw new DuplicateWaitObjectException();
+            throw new DuplicateEmailException();
         }
 
         var user = new User()

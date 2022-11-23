@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Diagnostics;
+﻿using BuberDinner.Application.Common.Errors;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BuberDinner.Api.Controllers
@@ -13,7 +14,7 @@ namespace BuberDinner.Api.Controllers
 
             var (statusCode, message) = exception switch
             {
-                DuplicateWaitObjectException => (StatusCodes.Status409Conflict, "Email already exists."),
+                IServiceException serviceException => ((int)serviceException.StatusCode, serviceException.ErrorMessage),
                 _ => (StatusCodes.Status400BadRequest, "An unexpected error occurred.")
             };
 
