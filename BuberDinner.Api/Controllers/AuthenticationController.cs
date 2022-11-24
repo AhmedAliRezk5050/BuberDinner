@@ -2,7 +2,6 @@ using BuberDinner.Application.Common.Errors;
 using BuberDinner.Application.Services.Authentication;
 using BuberDinner.Contracts.Authentication;
 using Microsoft.AspNetCore.Mvc;
-using OneOf;
 
 namespace BuberDinner.Api.Controllers;
 
@@ -21,16 +20,25 @@ public class AuthenticationController : ControllerBase
     [HttpPost("register")]
     public IActionResult Register(RegisterRequest result)
     {
-        OneOf<AuthenticationResult, DuplicateEmailError> registerResult =
+        FluentResults.Result<AuthenticationResult> registerResult =
             _authenticationService.Register(
                       result.FirstName,
                       result.LastName,
                       result.Email,
                       result.Password);
-        return registerResult.Match(
-            authResult => Ok(MapAuthResult(authResult)),
-            _ => Problem(statusCode: StatusCodes.Status409Conflict, title: "Email already exists.")
-            );
+        if (registerResult.IsSuccess)
+        {
+            return Ok(MapAuthResult(registerResult.Value));
+        }
+
+        var firstError = registerResult.Errors[0];
+
+        if(firstError is DuplicateEmailError)
+        {
+            return Problem(statusCode: StatusCodes.Status409Conflict, detail: "Email already exists.");
+        }
+
+        return Problem();
     }
 
 
