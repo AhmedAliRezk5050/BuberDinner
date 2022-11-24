@@ -1,13 +1,13 @@
 using BuberDinner.Application.Services.Authentication;
 using BuberDinner.Contracts.Authentication;
+using BuberDinner.Domain.Common.Errors;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BuberDinner.Api.Controllers;
 
 
-[ApiController]
 [Route("auth")]
-public class AuthenticationController : ControllerBase
+public class AuthenticationController : ApiController
 {
     private readonly IAuthenticationService _authenticationService;
 
@@ -25,11 +25,9 @@ public class AuthenticationController : ControllerBase
                       result.LastName,
                       result.Email,
                       result.Password);
-        return authResult.MatchFirst(
+        return authResult.Match(
             a => Ok(MapAuthResult(a)),
-            firstError => Problem(
-                statusCode: StatusCodes.Status409Conflict,
-                title: firstError.Description)
+            errors => Problem(errors)
             );
     }
 
@@ -37,19 +35,21 @@ public class AuthenticationController : ControllerBase
     [HttpPost("login")]
     public IActionResult Login(LoginRequest loginRequest)
     {
-        var authResult = _authenticationService.Login(
+        ErrorOr.ErrorOr<AuthenticationResult> authResult = _authenticationService.Login(
           loginRequest.Email,
           loginRequest.Password);
 
+        if (authResult.IsError && authResult.FirstError == Errors.Authentication.InvalidCredentials)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status401Unauthorized
+                , title: authResult.FirstError.Description);
+        }
 
-        var response = new AuthenticationResponse(
-         authResult.User.Id,
-         authResult.User.FirstName,
-         authResult.User.LastName,
-         authResult.User.Email,
-         authResult.Token
-       );
-        return Ok(response);
+        return authResult.Match(
+                a => Ok(MapAuthResult(a)),
+                errors => Problem(errors)
+            );
     }
 
     private static AuthenticationResponse MapAuthResult(AuthenticationResult authResult)
