@@ -27,15 +27,10 @@ public class AuthenticationController : ControllerBase
                       result.LastName,
                       result.Email,
                       result.Password);
-        if (registerResult.IsT0)
-        {
-            var authResult = registerResult.AsT0;
-            AuthenticationResponse response = MapAuthResult(authResult);
-            return Ok(response);
-        }
-
-
-        return Problem(statusCode: StatusCodes.Status409Conflict, title: "Email already exists.");
+        return registerResult.Match(
+            authResult => Ok(MapAuthResult(authResult)),
+            _ => Problem(statusCode: StatusCodes.Status409Conflict, title: "Email already exists.")
+            );
     }
 
 
