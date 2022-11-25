@@ -16,7 +16,7 @@ public class AuthenticationController : ApiController
     private readonly ISender _mediator;
     
     public AuthenticationController(
-        IMediator mediator
+        ISender mediator
         )
     {
         _mediator = mediator;
