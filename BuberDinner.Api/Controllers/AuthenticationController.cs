@@ -33,7 +33,7 @@ public class AuthenticationController : ApiController
         var authResult = await _mediator.Send(command);
 
         return authResult.Match(
-            a => Ok(MapAuthResult(a)),
+            a => Ok(_mapper.Map<AuthenticationResponse>(a)),
             errors => Problem(errors)
         );
     }
@@ -42,7 +42,7 @@ public class AuthenticationController : ApiController
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginRequest request)
     {
-        var query = new LoginQuery(request.Email, request.Password);
+        var query = _mapper.Map<LoginQuery>(request);
 
         ErrorOr<AuthenticationResult> authResult = await _mediator.Send(query);
 
@@ -54,19 +54,8 @@ public class AuthenticationController : ApiController
         }
 
         return authResult.Match(
-            a => Ok(MapAuthResult(a)),
+            a => Ok(_mapper.Map<AuthenticationResponse>(a)),
             errors => Problem(errors)
-        );
-    }
-
-    private static AuthenticationResponse MapAuthResult(AuthenticationResult authResult)
-    {
-        return new AuthenticationResponse(
-            authResult.User.Id,
-            authResult.User.FirstName,
-            authResult.User.LastName,
-            authResult.User.Email,
-            authResult.Token
         );
     }
 }
