@@ -1,6 +1,4 @@
-﻿using BuberDinner.Application.Authentication.Commands.Register;
-using BuberDinner.Application.Authentication.Common;
-using MediatR;
+﻿using MediatR;
 using ErrorOr;
 using FluentValidation;
 
